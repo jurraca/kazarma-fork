@@ -1,12 +1,12 @@
 {
-  description = "A flake template for Elixir projects built with Mix";
+  description = "A Matrix bridge to ActivityPub.";
 
   inputs = {
     nixpkgs.url = github:NixOS/nixpkgs?ref=master;
     utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, utils }: 
+  outputs = { self, nixpkgs, utils }:
     let
     pkgsForSystem = system: import nixpkgs {
         overlays = [ overlay ];
@@ -14,19 +14,12 @@
       };
 
     overlay = final: prev: rec {
+      beamPackages = prev.beam.packagesWith prev.beam.interpreters.erlangR24;
+      nodeDependencies = (prev.callPackage ./assets/default.nix { }).shell.nodeDependencies;
 
-      kazarma = with final;
-        let
-          beamPackages = beam.packagesWith beam.interpreters.erlangR24; 
-          mixNixDeps = import ./deps.nix { inherit lib beamPackages; }; 
-        in beamPackages.mixRelease {
-          inherit mixNixDeps;
-          pname = "kazarma";
-          src = ./.;
-          version = "0.0.0";
-         };
+      kazarma = prev.callPackage ./kazarma.nix { inherit beamPackages nodeDependencies; };
     };
-    in utils.lib.eachDefaultSystem (system: rec {
+    in utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" "aarch64-linux"] (system: rec {
       legacyPackages = pkgsForSystem system;
       packages = utils.lib.flattenTree {
         inherit (legacyPackages) kazarma;
