@@ -2,7 +2,7 @@
 
 with pkgs;
 let
-  elixir = beam.packages.erlangR24.elixir_1_12;
+  elixir = beam.packages.erlangR24.elixir_1_11;
 in
 mkShell {
     buildInputs = [ git elixir mix2nix postgresql_13 docker-compose nodePackages.node2nix ]
