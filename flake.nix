@@ -18,11 +18,12 @@
       nodeDependencies = (prev.callPackage ./assets/default.nix { }).shell.nodeDependencies;
 
       kazarma = prev.callPackage ./nix/kazarma.nix { inherit beamPackages nodeDependencies; };
+      docker-release = prev.callPackage ./nix/docker-prod.nix { inherit kazarma;};
     };
     in utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" "aarch64-linux"] (system: rec {
       legacyPackages = pkgsForSystem system;
       packages = utils.lib.flattenTree {
-        inherit (legacyPackages) kazarma;
+        inherit (legacyPackages) kazarma docker-release;
       };
       defaultPackage = packages.kazarma;
       devShell = self.devShells.${system}.dev;
